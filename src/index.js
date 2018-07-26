@@ -74,12 +74,12 @@ const store = Map({
 });
 
 const getResults = ({ fieldName }) => store
-  .getIn(['results', fieldName])
+  .getIn(['results', fieldName], Map())
   .set('__typename', 'results')
   .set('__inResults', fieldName);
 
 const getRelationsResultsIntersectin = ({ fieldName, rootValue }) => store
-  .getIn(['results', rootValue.get('__inResults'), fieldName])
+  .getIn(['results', rootValue.get('__inResults'), fieldName], OrderedSet())
   .intersect(rootValue.get(fieldName))
   .map(id => Map({
     id,
@@ -97,7 +97,7 @@ const getEntityProp = ({ rootValue, fieldName }) => fieldName === 'id'
   ])
 
 const getNonRelationProp = ({ rootValue, fieldName }) => is(OrderedSet, rootValue.get(fieldName))
-  ? rootValue.get(fieldName).map(id => Map({
+  ? rootValue.get(fieldName, OrderedSet()).map(id => Map({
     id,
     __typename: fieldName,
     __inResults: rootValue.get('__inResults'),
@@ -109,7 +109,7 @@ const getRelationProp = ({ rootValue, fieldName }) => store
       'relations',
       rootValue.get('__typename'),
       `${rootValue.get('id')}`
-    ]).set('__typename', fieldName)
+    ], Map()).set('__typename', fieldName)
       .set('__inResults', rootValue.get('__inResults'))
 
 

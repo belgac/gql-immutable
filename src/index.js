@@ -31,7 +31,7 @@ const query = gql`
 const store = Map({
   results: Map({
     accountsPositions: Map({
-      S_ACC: OrderedSet([0, 1, 2]),
+      S_ACC: OrderedSet([0, 1]),
       GES_ESTIM_D: OrderedSet([0, 1, 2])
     })
   }),
@@ -79,7 +79,7 @@ const getResults = ({ fieldName }) => store
   .set('__inResults', fieldName);
 
 const getRelationsResultsIntersectin = ({ fieldName, rootValue }) => store
-  .getIn([rootValue.get('__inResults'), fieldName])
+  .getIn(['results', rootValue.get('__inResults'), fieldName])
   .intersect(rootValue.get(fieldName))
   .map(id => Map({
     id,
@@ -109,7 +109,7 @@ const getRelationProp = ({ rootValue, fieldName }) => store
       'relations',
       rootValue.get('__typename'),
       `${rootValue.get('id')}`
-    ]).set('__typeName', fieldName)
+    ]).set('__typename', fieldName)
       .set('__inResults', rootValue.get('__inResults'))
 
 
@@ -117,8 +117,7 @@ const resolver = (fieldName, rootValue, args, context) => {
   if (!rootValue) {
     return getResults({ fieldName })
   } else if (rootValue.get('__typename') === 'relations') {
-    const relationsForResult = getRelationsResultsIntersectin({ fieldName, rootValue, args, context })
-    return (args || {}).oneToOne ? relationsForResult.first() : relationsForResult
+    return getRelationsResultsIntersectin({ fieldName, rootValue, args, context })
   } else if (fieldName !== 'relations') {
     return getNonRelationProp({ fieldName, rootValue, args, context })
   } else if (fieldName === 'relations') {
@@ -135,6 +134,6 @@ const result = graphql(
   store,
 );
 
-console.log(result)
+console.log(result.toJS())
 
 
